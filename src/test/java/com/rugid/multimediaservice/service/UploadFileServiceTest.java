@@ -30,23 +30,9 @@ class UploadFileServiceTest {
         uploadFileService = new UploadFileService(fileOutputPort);
         when(fileOutputPort.upload(any(byte[].class), anyString())).thenReturn("uploadedFileUrl");
 
-        String result = uploadFileService.uploadImage(uploadFileCommand);
+        String result = uploadFileService.upload(uploadFileCommand);
 
         assertEquals("uploadedFileUrl", result);
         verify(fileOutputPort, times(1)).upload(any(byte[].class), anyString());
     }
-
-
-    //Можно добавить негативный сценарий, но придется изменять бизнес логику и добавлять новые проверки.
-
-
-//    @Test
-//    void testUploadImage_whenDataNull_thenReturnedException() {
-//        fileOutputPort = mock(FileOutputPort.class);
-//        var uploadFileCommand = new UploadFileUseCase.UploadFileCommand(null, "jpg");
-//        uploadFileService = new UploadFileService(fileOutputPort);
-//
-//        assertThrows(NullPointerException.class, () -> uploadFileService.uploadImage(uploadFileCommand));
-//        verify(fileOutputPort, never()).upload(any(byte[].class), anyString());
-//    }
 }

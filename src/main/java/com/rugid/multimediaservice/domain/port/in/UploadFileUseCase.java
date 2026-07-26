@@ -2,12 +2,10 @@ package com.rugid.multimediaservice.domain.port.in;
 
 public interface UploadFileUseCase {
 
-    String uploadImage(UploadFileCommand uploadFileCommand);
+    String upload(UploadFileCommand command);
 
     record UploadFileCommand(
-
-            byte[] imageData,
-
+            byte[] fileData,
             String extension
     ) {
     }

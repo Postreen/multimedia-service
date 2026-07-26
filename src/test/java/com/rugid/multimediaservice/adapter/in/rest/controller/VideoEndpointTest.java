@@ -76,7 +76,7 @@ class VideoEndpointTest {
         String fileExtension = FilenameUtils.getExtension(request.video().getOriginalFilename());
         UploadFileUseCase.UploadFileCommand uploadFileCommand = new UploadFileUseCase
                 .UploadFileCommand(request.video().getBytes(), fileExtension);
-        when(uploadFileUseCase.uploadImage(uploadFileCommand)).thenReturn(imageId);
+        when(uploadFileUseCase.upload(uploadFileCommand)).thenReturn(imageId);
         String result = mockMvc.perform(MockMvcRequestBuilders
                         .put("/video")
                         .contentType(MediaType.MULTIPART_FORM_DATA)
@@ -88,7 +88,7 @@ class VideoEndpointTest {
                 .getContentAsString();
 
         assertEquals(expectedResult, result);
-        verify(uploadFileUseCase, times(1)).uploadImage(uploadFileCommand);
+        verify(uploadFileUseCase, times(1)).upload(uploadFileCommand);
     }
 
     @Test

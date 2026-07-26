@@ -1,8 +1,12 @@
 package com.rugid.multimediaservice.adapter.in.rest.controller;
 
-import com.rugid.multimediaservice.adapter.in.rest.dto.*;
+import com.rugid.multimediaservice.adapter.in.rest.dto.DeleteVideoRequest;
+import com.rugid.multimediaservice.adapter.in.rest.dto.RetrieveDefaultVideoIdResponse;
+import com.rugid.multimediaservice.adapter.in.rest.dto.UploadVideoRequest;
+import com.rugid.multimediaservice.adapter.in.rest.dto.UploadVideoResponse;
+import com.rugid.multimediaservice.adapter.in.rest.validator.FileValidator;
 import com.rugid.multimediaservice.adapter.in.rest.validator.JsonDtoValidator;
-import com.rugid.multimediaservice.domain.core.exception.IORuntimeException;
+import com.rugid.multimediaservice.domain.core.exception.FileReadingException;
 import com.rugid.multimediaservice.domain.port.in.DeleteFileUseCase;
 import com.rugid.multimediaservice.domain.port.in.GetDefaultFileUrlUseCase;
 import com.rugid.multimediaservice.domain.port.in.UploadFileUseCase;
@@ -14,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/video")
@@ -24,6 +29,12 @@ public class VideoEndpoint {
     private final UploadFileUseCase uploadFileUseCase;
     private final DeleteFileUseCase deleteFileUseCase;
     private final JsonDtoValidator<DeleteVideoRequest> deleteVideoRequestValidator;
+    private final FileValidator fileValidator;
+
+    private static final Set<String> VIDEO_EXTENSIONS = Set.of(
+            "mp4", "avi", "mov", "mkv"
+    );
+
 
     @GetMapping("/default")
     public ResponseEntity<RetrieveDefaultVideoIdResponse> getDefaultVideoId() {
@@ -37,7 +48,7 @@ public class VideoEndpoint {
     @PutMapping(consumes = "multipart/form-data")
     public ResponseEntity<UploadVideoResponse> uploadImage(@ModelAttribute("request") UploadVideoRequest uploadVideoRequest) {
         UploadFileUseCase.UploadFileCommand uploadFileCommand = createUploadImageCommand(uploadVideoRequest);
-        String videoId = uploadFileUseCase.uploadImage(uploadFileCommand);
+        String videoId = uploadFileUseCase.upload(uploadFileCommand);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -59,19 +70,16 @@ public class VideoEndpoint {
     private UploadFileUseCase.UploadFileCommand createUploadImageCommand(UploadVideoRequest request) {
         MultipartFile video = request.video();
 
-        byte[] videoAsBytes;
+        fileValidator.validate(video, VIDEO_EXTENSIONS);
+
         try {
-            videoAsBytes = video.getBytes();
+            return new UploadFileUseCase.UploadFileCommand(
+                    video.getBytes(),
+                    FilenameUtils.getExtension(video.getOriginalFilename())
+            );
         } catch (IOException e) {
-            throw new IORuntimeException("Could not read video data", e);
+            throw new FileReadingException(e);
         }
-
-        String fileExtension = FilenameUtils.getExtension(video.getOriginalFilename());
-
-        return new UploadFileUseCase.UploadFileCommand(
-                videoAsBytes,
-                fileExtension
-        );
     }
 
     private DeleteFileUseCase.DeleteFileCommand createDeleteVideoCommand(DeleteVideoRequest request) {

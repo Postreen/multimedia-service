@@ -8,5 +8,5 @@ public interface FileOutputPort {
 
     InputStreamResource download(String fileId);
 
-    void delete(String imageId);
+    void delete(String fileId);
 }
