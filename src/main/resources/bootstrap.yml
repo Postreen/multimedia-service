@@ -1,0 +1,12 @@
+spring:
+  profiles:
+    active: dev
+  application:
+    name: multimedia-service
+  cloud:
+    config:
+      uri: http://localhost:8880
+      fail-fast: false
+rugid:
+  images:
+   folder-path: "content"
