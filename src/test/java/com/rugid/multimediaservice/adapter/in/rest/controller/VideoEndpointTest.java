@@ -5,6 +5,7 @@ import com.rugid.multimediaservice.adapter.in.rest.dto.DeleteVideoRequest;
 import com.rugid.multimediaservice.adapter.in.rest.dto.RetrieveDefaultVideoIdResponse;
 import com.rugid.multimediaservice.adapter.in.rest.dto.UploadVideoRequest;
 import com.rugid.multimediaservice.adapter.in.rest.dto.UploadVideoResponse;
+import com.rugid.multimediaservice.adapter.in.rest.validator.FileValidator;
 import com.rugid.multimediaservice.adapter.in.rest.validator.JsonDtoValidator;
 import com.rugid.multimediaservice.domain.port.in.DeleteFileUseCase;
 import com.rugid.multimediaservice.domain.port.in.GetDefaultFileUrlUseCase;
@@ -44,6 +45,10 @@ class VideoEndpointTest {
     private DeleteFileUseCase deleteFileUseCase;
     @MockBean
     private JsonDtoValidator<DeleteVideoRequest> deleteVideoRequestValidator;
+    @MockBean
+    private JsonDtoValidator<UploadVideoRequest> uploadVideoRequestValidator;
+    @MockBean
+    private FileValidator fileValidator;
 
     @Test
     void testGetDefaultVideoId_whenValidData() throws Exception {

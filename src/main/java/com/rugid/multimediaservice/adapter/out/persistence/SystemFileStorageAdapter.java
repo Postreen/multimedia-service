@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
+import org.springframework.util.StringUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -43,16 +44,21 @@ public class SystemFileStorageAdapter implements FileOutputPort {
     public InputStreamResource download(String fileId) {
         Path path = resolveSafePath(fileId);
 
-        return new InputStreamResource(
-                new ByteArrayInputStream(readFile(path))
-        );
+        try {
+            return new InputStreamResource(
+                    Files.newInputStream(path)
+            );
+        } catch (NoSuchFileException e) {
+            throw new NoSuchFileRuntimeException(e);
+        } catch (IOException e) {
+            throw new FileReadingException(e);
+        }
     }
 
     @Override
     public void delete(String fileId) {
         deleteFile(resolveSafePath(fileId));
     }
-
 
     private byte[] readFile(Path path) {
         try {
@@ -64,16 +70,14 @@ public class SystemFileStorageAdapter implements FileOutputPort {
         }
     }
 
-
     private void saveFile(Path path, byte[] data) {
         try {
             initFolder();
             Files.write(path, data);
         } catch (IOException e) {
-            throw new FileWritingException();
+            throw new FileWritingException(e);
         }
     }
-
 
     private void deleteFile(Path path) {
         try {
@@ -85,7 +89,6 @@ public class SystemFileStorageAdapter implements FileOutputPort {
         }
     }
 
-
     private void initFolder() {
         try {
             Files.createDirectories(storageFolder);
@@ -94,33 +97,21 @@ public class SystemFileStorageAdapter implements FileOutputPort {
         }
     }
 
-
     private Path resolveSafePath(String fileId) {
-
-        if (fileId.contains("/") ||
+        if (!StringUtils.hasText(fileId) ||
+                fileId.contains("/") ||
                 fileId.contains("\\") ||
                 fileId.contains("..")) {
-
             throw new WrongPathException();
         }
 
-        Path path = storageFolder
-                .resolve(fileId)
-                .normalize();
+        Path path = storageFolder.resolve(fileId).normalize();
 
         if (!path.startsWith(storageFolder)) {
             throw new WrongPathException();
         }
 
         return path;
-    }
-
-    private String generateFileId(Path filename) {
-        return filename.getFileName().toString();
-    }
-
-    private Path generateFilePath(String filename, String extension) {
-        return storageFolder.resolve(filename + "." + extension);
     }
 
     private String generateFilename(byte[] fileData) {

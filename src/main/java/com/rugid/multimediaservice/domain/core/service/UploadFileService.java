@@ -5,8 +5,6 @@ import com.rugid.multimediaservice.domain.port.out.FileOutputPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.net.URL;
-
 @Service
 @RequiredArgsConstructor
 public class UploadFileService implements UploadFileUseCase {

@@ -1,7 +1,8 @@
 package com.rugid.multimediaservice.adapter.out.persistence;
 
-import com.rugid.multimediaservice.domain.core.exception.IORuntimeException;
+import com.rugid.multimediaservice.domain.core.exception.FileWritingException;
 import com.rugid.multimediaservice.domain.core.exception.NoSuchFileRuntimeException;
+import com.rugid.multimediaservice.domain.core.exception.WrongPathException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,7 +25,7 @@ class SystemFileStorageAdapterTest {
     private SystemFileStorageAdapter fileStorageAdapter;
 
     @BeforeEach
-    void setUp() throws IOException {
+    void setUp() {
         fileStorageAdapter = new SystemFileStorageAdapter(storageFolderPath);
     }
 
@@ -36,18 +37,6 @@ class SystemFileStorageAdapterTest {
         var fileId = fileStorageAdapter.upload(testData, extension);
 
         assertNotNull(fileId);
-    }
-
-    @Test
-    void testUpload_whenFolderNotExists_thenReturnedIOException() throws IOException {
-        var testData = "Test data".getBytes();
-        var extension = "txt";
-        fileStorageAdapter = new SystemFileStorageAdapter("asd");
-
-        var ex = assertThrows(IORuntimeException.class, () -> {
-            fileStorageAdapter.upload(testData, extension);
-        });
-        assertEquals("Could not save file", ex.getMessage());
     }
 
     @Test
@@ -79,7 +68,7 @@ class SystemFileStorageAdapterTest {
             fileStorageAdapter.download("null");
         });
 
-        assertEquals("Could not find file", ex.getMessage());
+        assertEquals("File not found", ex.getMessage());
     }
 
 
@@ -94,10 +83,27 @@ class SystemFileStorageAdapterTest {
 
     @Test
     void testDelete_whenFileNotFound_thenReturnedThrow() {
-        Throwable ex = assertThrows(IORuntimeException.class, () -> {
-            fileStorageAdapter.delete("null");
-        });
+        Throwable ex = assertThrows(NoSuchFileRuntimeException.class,
+                () -> fileStorageAdapter.delete("null"));
 
-        assertEquals("Could not find file", ex.getMessage());
+        assertEquals("File not found", ex.getMessage());
+    }
+
+    @Test
+    void testDownload_whenFileIdIsNull_thenThrowWrongPathException() {
+        assertThrows(WrongPathException.class,
+                () -> fileStorageAdapter.download(null));
+    }
+
+    @Test
+    void testDownload_whenFileIdIsBlank_thenThrowWrongPathException() {
+        assertThrows(WrongPathException.class,
+                () -> fileStorageAdapter.download(" "));
+    }
+
+    @Test
+    void testDelete_whenFileIdIsNull_thenThrowWrongPathException() {
+        assertThrows(WrongPathException.class,
+                () -> fileStorageAdapter.delete(null));
     }
 }

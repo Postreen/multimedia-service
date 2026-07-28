@@ -5,6 +5,7 @@ import com.rugid.multimediaservice.adapter.in.rest.dto.DeleteImageRequest;
 import com.rugid.multimediaservice.adapter.in.rest.dto.RetrieveDefaultImageIdResponse;
 import com.rugid.multimediaservice.adapter.in.rest.dto.UploadImageRequest;
 import com.rugid.multimediaservice.adapter.in.rest.dto.UploadImageResponse;
+import com.rugid.multimediaservice.adapter.in.rest.validator.FileValidator;
 import com.rugid.multimediaservice.adapter.in.rest.validator.JsonDtoValidator;
 import com.rugid.multimediaservice.domain.port.in.DeleteFileUseCase;
 import com.rugid.multimediaservice.domain.port.in.DownloadFileUseCase;
@@ -52,6 +53,8 @@ class ImageEndpointTest {
     private JsonDtoValidator<UploadImageRequest> uploadImageRequestValidator;
     @MockBean
     private JsonDtoValidator<DeleteImageRequest> deleteImageRequestValidator;
+    @MockBean
+    private FileValidator fileValidator;
 
     @Test
     void testDownloadImage_whenValidData() throws Exception {

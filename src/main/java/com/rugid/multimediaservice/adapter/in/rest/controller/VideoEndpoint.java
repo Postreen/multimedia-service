@@ -29,12 +29,12 @@ public class VideoEndpoint {
     private final UploadFileUseCase uploadFileUseCase;
     private final DeleteFileUseCase deleteFileUseCase;
     private final JsonDtoValidator<DeleteVideoRequest> deleteVideoRequestValidator;
+    private final JsonDtoValidator<UploadVideoRequest> uploadVideoRequestValidator;
     private final FileValidator fileValidator;
 
     private static final Set<String> VIDEO_EXTENSIONS = Set.of(
             "mp4", "avi", "mov", "mkv"
     );
-
 
     @GetMapping("/default")
     public ResponseEntity<RetrieveDefaultVideoIdResponse> getDefaultVideoId() {
@@ -46,8 +46,11 @@ public class VideoEndpoint {
     }
 
     @PutMapping(consumes = "multipart/form-data")
-    public ResponseEntity<UploadVideoResponse> uploadImage(@ModelAttribute("request") UploadVideoRequest uploadVideoRequest) {
-        UploadFileUseCase.UploadFileCommand uploadFileCommand = createUploadImageCommand(uploadVideoRequest);
+    public ResponseEntity<UploadVideoResponse> uploadVideo(
+            @ModelAttribute("request") UploadVideoRequest request) {
+
+        uploadVideoRequestValidator.validate(request);
+        UploadFileUseCase.UploadFileCommand uploadFileCommand = createUploadVideoCommand(request);
         String videoId = uploadFileUseCase.upload(uploadFileCommand);
 
         return ResponseEntity
@@ -67,15 +70,15 @@ public class VideoEndpoint {
                 .build();
     }
 
-    private UploadFileUseCase.UploadFileCommand createUploadImageCommand(UploadVideoRequest request) {
-        MultipartFile video = request.video();
+    private UploadFileUseCase.UploadFileCommand createUploadVideoCommand(UploadVideoRequest request) {
+        MultipartFile videoFile  = request.video();
 
-        fileValidator.validate(video, VIDEO_EXTENSIONS);
+        fileValidator.validate(videoFile , VIDEO_EXTENSIONS);
 
         try {
             return new UploadFileUseCase.UploadFileCommand(
-                    video.getBytes(),
-                    FilenameUtils.getExtension(video.getOriginalFilename())
+                    videoFile .getBytes(),
+                    FilenameUtils.getExtension(videoFile .getOriginalFilename())
             );
         } catch (IOException e) {
             throw new FileReadingException(e);
