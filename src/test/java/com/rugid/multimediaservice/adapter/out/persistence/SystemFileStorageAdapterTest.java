@@ -1,6 +1,5 @@
 package com.rugid.multimediaservice.adapter.out.persistence;
 
-import com.rugid.multimediaservice.domain.core.exception.FileWritingException;
 import com.rugid.multimediaservice.domain.core.exception.NoSuchFileRuntimeException;
 import com.rugid.multimediaservice.domain.core.exception.WrongPathException;
 import org.junit.jupiter.api.BeforeEach;
