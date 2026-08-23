@@ -5,6 +5,7 @@ import com.rugid.multimediaservice.adapter.in.rest.dto.DeleteImageRequest;
 import com.rugid.multimediaservice.adapter.in.rest.dto.RetrieveDefaultImageIdResponse;
 import com.rugid.multimediaservice.adapter.in.rest.dto.UploadImageRequest;
 import com.rugid.multimediaservice.adapter.in.rest.dto.UploadImageResponse;
+import com.rugid.multimediaservice.adapter.in.rest.validator.FileValidator;
 import com.rugid.multimediaservice.adapter.in.rest.validator.JsonDtoValidator;
 import com.rugid.multimediaservice.domain.port.in.DeleteFileUseCase;
 import com.rugid.multimediaservice.domain.port.in.DownloadFileUseCase;
@@ -52,6 +53,8 @@ class ImageEndpointTest {
     private JsonDtoValidator<UploadImageRequest> uploadImageRequestValidator;
     @MockBean
     private JsonDtoValidator<DeleteImageRequest> deleteImageRequestValidator;
+    @MockBean
+    private FileValidator fileValidator;
 
     @Test
     void testDownloadImage_whenValidData() throws Exception {
@@ -105,7 +108,7 @@ class ImageEndpointTest {
         String fileExtension = FilenameUtils.getExtension(request.image().getOriginalFilename());
         UploadFileUseCase.UploadFileCommand uploadFileCommand = new UploadFileUseCase
                 .UploadFileCommand(request.image().getBytes(), fileExtension);
-        when(uploadFileUseCase.uploadImage(uploadFileCommand)).thenReturn(imageId);
+        when(uploadFileUseCase.upload(uploadFileCommand)).thenReturn(imageId);
         String result = mockMvc.perform(MockMvcRequestBuilders
                         .put("/image")
                         .contentType(MediaType.MULTIPART_FORM_DATA)
@@ -117,7 +120,7 @@ class ImageEndpointTest {
                 .getContentAsString();
 
         assertEquals(expectedResult, result);
-        verify(uploadFileUseCase, times(1)).uploadImage(uploadFileCommand);
+        verify(uploadFileUseCase, times(1)).upload(uploadFileCommand);
     }
 
     @Test

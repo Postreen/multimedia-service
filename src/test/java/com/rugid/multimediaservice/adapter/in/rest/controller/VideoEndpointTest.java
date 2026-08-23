@@ -5,6 +5,7 @@ import com.rugid.multimediaservice.adapter.in.rest.dto.DeleteVideoRequest;
 import com.rugid.multimediaservice.adapter.in.rest.dto.RetrieveDefaultVideoIdResponse;
 import com.rugid.multimediaservice.adapter.in.rest.dto.UploadVideoRequest;
 import com.rugid.multimediaservice.adapter.in.rest.dto.UploadVideoResponse;
+import com.rugid.multimediaservice.adapter.in.rest.validator.FileValidator;
 import com.rugid.multimediaservice.adapter.in.rest.validator.JsonDtoValidator;
 import com.rugid.multimediaservice.domain.port.in.DeleteFileUseCase;
 import com.rugid.multimediaservice.domain.port.in.GetDefaultFileUrlUseCase;
@@ -44,6 +45,10 @@ class VideoEndpointTest {
     private DeleteFileUseCase deleteFileUseCase;
     @MockBean
     private JsonDtoValidator<DeleteVideoRequest> deleteVideoRequestValidator;
+    @MockBean
+    private JsonDtoValidator<UploadVideoRequest> uploadVideoRequestValidator;
+    @MockBean
+    private FileValidator fileValidator;
 
     @Test
     void testGetDefaultVideoId_whenValidData() throws Exception {
@@ -76,7 +81,7 @@ class VideoEndpointTest {
         String fileExtension = FilenameUtils.getExtension(request.video().getOriginalFilename());
         UploadFileUseCase.UploadFileCommand uploadFileCommand = new UploadFileUseCase
                 .UploadFileCommand(request.video().getBytes(), fileExtension);
-        when(uploadFileUseCase.uploadImage(uploadFileCommand)).thenReturn(imageId);
+        when(uploadFileUseCase.upload(uploadFileCommand)).thenReturn(imageId);
         String result = mockMvc.perform(MockMvcRequestBuilders
                         .put("/video")
                         .contentType(MediaType.MULTIPART_FORM_DATA)
@@ -88,7 +93,7 @@ class VideoEndpointTest {
                 .getContentAsString();
 
         assertEquals(expectedResult, result);
-        verify(uploadFileUseCase, times(1)).uploadImage(uploadFileCommand);
+        verify(uploadFileUseCase, times(1)).upload(uploadFileCommand);
     }
 
     @Test

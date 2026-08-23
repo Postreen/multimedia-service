@@ -4,8 +4,9 @@ import com.rugid.multimediaservice.adapter.in.rest.dto.DeleteImageRequest;
 import com.rugid.multimediaservice.adapter.in.rest.dto.RetrieveDefaultImageIdResponse;
 import com.rugid.multimediaservice.adapter.in.rest.dto.UploadImageRequest;
 import com.rugid.multimediaservice.adapter.in.rest.dto.UploadImageResponse;
+import com.rugid.multimediaservice.adapter.in.rest.validator.FileValidator;
 import com.rugid.multimediaservice.adapter.in.rest.validator.JsonDtoValidator;
-import com.rugid.multimediaservice.domain.core.exception.IORuntimeException;
+import com.rugid.multimediaservice.domain.core.exception.FileReadingException;
 import com.rugid.multimediaservice.domain.port.in.DeleteFileUseCase;
 import com.rugid.multimediaservice.domain.port.in.DownloadFileUseCase;
 import com.rugid.multimediaservice.domain.port.in.GetDefaultFileUrlUseCase;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/image")
@@ -33,6 +35,11 @@ public class ImageEndpoint {
     private final DeleteFileUseCase deleteFileUseCase;
     private final JsonDtoValidator<UploadImageRequest> uploadImageRequestValidator;
     private final JsonDtoValidator<DeleteImageRequest> deleteImageRequestValidator;
+    private final FileValidator fileValidator;
+
+    private static final Set<String> IMAGE_EXTENSIONS = Set.of(
+            "jpg", "jpeg", "png", "gif", "bmp", "webp"
+    );
 
     @GetMapping
     public ResponseEntity<Resource> downloadImage(@RequestParam(name = "imageId") String imageId) {
@@ -40,7 +47,7 @@ public class ImageEndpoint {
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .contentType(MediaType.valueOf("image/png"))
+                .contentType(MediaType.valueOf("application/octet-stream"))
                 .body(image);
     }
 
@@ -58,7 +65,7 @@ public class ImageEndpoint {
         uploadImageRequestValidator.validate(request);
 
         UploadFileUseCase.UploadFileCommand uploadFileCommand = createUploadImageCommand(request);
-        String imageId = uploadFileUseCase.uploadImage(uploadFileCommand);
+        String imageId = uploadFileUseCase.upload(uploadFileCommand);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -80,19 +87,16 @@ public class ImageEndpoint {
     private UploadFileUseCase.UploadFileCommand createUploadImageCommand(UploadImageRequest request) {
         MultipartFile image = request.image();
 
-        byte[] imageAsBytes;
+        fileValidator.validate(image, IMAGE_EXTENSIONS);
+
         try {
-            imageAsBytes = image.getBytes();
+            return new UploadFileUseCase.UploadFileCommand(
+                    image.getBytes(),
+                    FilenameUtils.getExtension(image.getOriginalFilename())
+            );
         } catch (IOException e) {
-            throw new IORuntimeException("Could not read image data", e);
+            throw new FileReadingException(e);
         }
-
-        String fileExtension = FilenameUtils.getExtension(image.getOriginalFilename());
-
-        return new UploadFileUseCase.UploadFileCommand(
-                imageAsBytes,
-                fileExtension
-        );
     }
 
     private DeleteFileUseCase.DeleteFileCommand createDeleteImageCommand(DeleteImageRequest request) {
