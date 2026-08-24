@@ -1,0 +1,21 @@
+.git
+.github
+.gradle
+build
+out
+.idea
+*.iml
+.env.example
+.env.*
+!.env.example
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+
+# Node
+node_modules

@@ -1,0 +1,8 @@
+spring:
+  cloud:
+    config:
+      uri: ${SPRING_CLOUD_CONFIG_URI:http://host.docker.internal:8880}
+
+rugid:
+  images:
+    folder-path: ${IMAGES_FOLDER_PATH:/app/content}

@@ -1,0 +1,17 @@
+services:
+  multimedia-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: multimedia-service
+    ports:
+      - "8080:8080"
+      - "9090:9090"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_CLOUD_CONFIG_URI: http://host.docker.internal:8880
+      IMAGES_FOLDER_PATH: /app/content
+    volumes:
+      - ./content:/app/content
+    restart: unless-stopped
+
